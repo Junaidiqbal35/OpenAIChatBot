@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot Interface</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#chat-container {
+    width: 100%;
+    max-width: 350px;
+    margin: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background: #fff;
+}
+
+#chat-window {
+    height: 300px;
+    overflow: auto;
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+#output {
+    padding: 5px;
+    margin: 5px;
+}
+
+#user-input {
+    width: calc(100% - 85px);
+    padding: 10px;
+    border: none;
+    border-top: 1px solid #ddd;
+    outline: none;
+}
+
+#send-btn {
+    width: 75px;
+    border: none;
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    border-top: 1px solid #007bff;
+}
+
+#send-btn:hover {
+    background: #0056b3;
+}
+
+    </style>
+    
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-window">
+            <div id="output"></div>
+        </div>
+        <input type="text" id="user-input" placeholder="Type your message here..." />
+        <button id="send-btn">Send</button>
+    </div>
+    <script>
+        // script.js
+
+// Establish a websocket connection
+let chatSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/chatbot/'
+);
+
+chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const message = data.message;
+    // Display the incoming message from the WebSocket
+    displayMessage(message, 'Bot: ');
+};
+
+chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+};
+
+document.querySelector('#send-btn').onclick = function(e) {
+    const userInputField = document.querySelector('#user-input');
+    const message = userInputField.value.trim();
+    
+    if (message) {
+        // Function to display user's message in the chat window
+        displayMessage(message, 'You: ');
+        // Clear the input field
+        userInputField.value = '';
+        
+        // Send message to the WebSocket
+        chatSocket.send(JSON.stringify({'message': message}));
+    }
+};
+
+function displayMessage(message, prefix) {
+    const chatWindow = document.querySelector('#output');
+    const newMessageDiv = document.createElement('div');
+    newMessageDiv.textContent = prefix + message;
+    chatWindow.appendChild(newMessageDiv);
+
+    // Scroll to the bottom of the chat window
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+    </script>
+</body>
+</html>
